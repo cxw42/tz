@@ -237,31 +237,31 @@ GCC_DEBUG_FLAGS = -Dlint -g3 -O3 -fno-common -fstrict-aliasing \
 # before the first Monday in January when a "%V" format is used and January 1
 # falls on a Friday, Saturday, or Sunday.
 
-CFLAGS=
+CFLAGS+=
 
 # Linker flags.  Default to $(LFLAGS) for backwards compatibility
 # to tzcode2012h and earlier.
 
-LDFLAGS=	$(LFLAGS)
+LDFLAGS+=	$(LFLAGS)
 
 # For leap seconds, this Makefile uses LEAPSECONDS='-L leapseconds' in
 # submake command lines.  The default is no leap seconds.
 
-LEAPSECONDS=
+LEAPSECONDS+=
 
 # The zic command and its arguments.
 
 zic=		./zic
 ZIC=		$(zic) $(ZFLAGS)
 
-ZFLAGS=
+ZFLAGS+=
 
 # How to use zic to install tzdata binary files.
 
 ZIC_INSTALL=	$(ZIC) -y $(YEARISTYPE) -d $(DESTDIR)$(TZDIR) $(LEAPSECONDS)
 
 # The name of a Posix-compliant 'awk' on your system.
-AWK=		awk
+AWK?=		awk
 
 # The full path name of a Posix-compliant shell, preferably one that supports
 # the Korn shell's 'select' statement as an extension.
@@ -269,7 +269,7 @@ AWK=		awk
 # It should be OK to set this to /bin/sh, on platforms where /bin/sh
 # lacks 'select' or doesn't completely conform to Posix, but /bin/bash
 # is typically nicer if it works.
-KSHELL=		/bin/bash
+KSHELL?=		/bin/bash
 
 # The path where SGML DTDs are kept and the catalog file(s) to use when
 # validating.  The default is appropriate for Ubuntu 13.10.
@@ -339,10 +339,10 @@ GZIPFLAGS=	-9n
 
 #MAKE=		make
 
-cc=		cc
-CC=		$(cc) -DTZDIR=\"$(TZDIR)\"
+cc?=		cc
+CC?=		$(cc) -DTZDIR=\"$(TZDIR)\"
 
-AR=		ar
+AR?=		ar
 
 # ':' on typical hosts; 'ranlib' on the ancient hosts that still need ranlib.
 RANLIB=		:
@@ -480,6 +480,12 @@ zones:		$(REDO)
 libtz.a:	$(LIBOBJS)
 		$(AR) ru $@ $(LIBOBJS)
 		$(RANLIB) $@
+
+tzobj.o:	tzobj.c tzobj.h $(LIBSRCS)
+		$(CC) -c -o $@ $(CFLAGS) $< $(LDFLAGS) $(LDLIBS)
+
+tzotest.exe:	tzotest.c tzobj.o
+		$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) $(LDLIBS)
 
 date:		$(DATEOBJS)
 		$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(DATEOBJS) $(LDLIBS)

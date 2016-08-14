@@ -1289,7 +1289,7 @@ tzsetlcl(char const *name)
 
 #ifdef STD_INSPIRED
 void
-tzsetwall(void)
+N(tzsetwall)(void)
 {
   if (lock() != 0)
     return;
@@ -1305,7 +1305,7 @@ tzset_unlocked(void)
 }
 
 void
-tzset(void)
+N(tzset)(void)
 {
   if (lock() != 0)
     return;
@@ -1333,7 +1333,7 @@ gmtcheck(void)
 #if NETBSD_INSPIRED
 
 timezone_t
-tzalloc(char const *name)
+N(tzalloc)(char const *name)
 {
   timezone_t sp = malloc(sizeof *sp);
   if (sp) {
@@ -1348,7 +1348,7 @@ tzalloc(char const *name)
 }
 
 void
-tzfree(timezone_t sp)
+N(tzfree)(timezone_t sp)
 {
   free(sp);
 }
@@ -1462,7 +1462,7 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
 #if NETBSD_INSPIRED
 
 struct tm *
-localtime_rz(struct state *sp, time_t const *timep, struct tm *tmp)
+N(localtime_rz)(struct state *sp, time_t const *timep, struct tm *tmp)
 {
   return localsub(sp, timep, 0, tmp);
 }
@@ -1470,7 +1470,7 @@ localtime_rz(struct state *sp, time_t const *timep, struct tm *tmp)
 #endif
 
 static struct tm *
-localtime_tzset(time_t const *timep, struct tm *tmp, bool setname)
+N(localtime_tzset)(time_t const *timep, struct tm *tmp, bool setname)
 {
   int err = lock();
   if (err) {
@@ -1485,15 +1485,15 @@ localtime_tzset(time_t const *timep, struct tm *tmp, bool setname)
 }
 
 struct tm *
-localtime(const time_t *timep)
+N(localtime)(const time_t *timep)
 {
-  return localtime_tzset(timep, &tm, true);
+  return N(localtime_tzset)(timep, &tm, true);
 }
 
 struct tm *
-localtime_r(const time_t *timep, struct tm *tmp)
+N(localtime_r)(const time_t *timep, struct tm *tmp)
 {
-  return localtime_tzset(timep, tmp, false);
+  return N(localtime_tzset)(timep, tmp, false);
 }
 
 /*
@@ -1524,22 +1524,22 @@ gmtsub(struct state const *sp, time_t const *timep, int_fast32_t offset,
 */
 
 struct tm *
-gmtime_r(const time_t *timep, struct tm *tmp)
+N(gmtime_r)(const time_t *timep, struct tm *tmp)
 {
   gmtcheck();
   return gmtsub(gmtptr, timep, 0, tmp);
 }
 
 struct tm *
-gmtime(const time_t *timep)
+N(gmtime)(const time_t *timep)
 {
-  return gmtime_r(timep, &tm);
+  return N(gmtime_r)(timep, &tm);
 }
 
 #ifdef STD_INSPIRED
 
 struct tm *
-offtime(const time_t *timep, long offset)
+N(offtime)(const time_t *timep, long offset)
 {
   gmtcheck();
   return gmtsub(gmtptr, timep, offset, &tm);
@@ -1684,7 +1684,7 @@ timesub(const time_t *timep, int_fast32_t offset,
 }
 
 char *
-ctime(const time_t *timep)
+N(ctime)(const time_t *timep)
 {
 /*
 ** Section 4.12.3.2 of X3.159-1989 requires that
@@ -1692,16 +1692,16 @@ ctime(const time_t *timep)
 **	to local time in the form of a string. It is equivalent to
 **		asctime(localtime(timer))
 */
-  struct tm *tmp = localtime(timep);
-  return tmp ? asctime(tmp) : NULL;
+  struct tm *tmp = N(localtime)(timep);
+  return tmp ? N(asctime)(tmp) : NULL;
 }
 
 char *
-ctime_r(const time_t *timep, char *buf)
+N(ctime_r)(const time_t *timep, char *buf)
 {
   struct tm mytm;
-  struct tm *tmp = localtime_r(timep, &mytm);
-  return tmp ? asctime_r(tmp, buf) : NULL;
+  struct tm *tmp = N(localtime_r)(timep, &mytm);
+  return tmp ? N(asctime_r)(tmp, buf) : NULL;
 }
 
 /*
@@ -2107,7 +2107,7 @@ mktime_tzname(struct state *sp, struct tm *tmp, bool setname)
 #if NETBSD_INSPIRED
 
 time_t
-mktime_z(struct state *sp, struct tm *tmp)
+N(mktime_z)(struct state *sp, struct tm *tmp)
 {
   return mktime_tzname(sp, tmp, false);
 }
@@ -2115,7 +2115,7 @@ mktime_z(struct state *sp, struct tm *tmp)
 #endif
 
 time_t
-mktime(struct tm *tmp)
+N(mktime)(struct tm *tmp)
 {
   time_t t;
   int err = lock();
@@ -2132,21 +2132,21 @@ mktime(struct tm *tmp)
 #ifdef STD_INSPIRED
 
 time_t
-timelocal(struct tm *tmp)
+N(timelocal)(struct tm *tmp)
 {
 	if (tmp != NULL)
 		tmp->tm_isdst = -1;	/* in case it wasn't initialized */
-	return mktime(tmp);
+	return N(mktime)(tmp);
 }
 
 time_t
-timegm(struct tm *tmp)
+N(timegm)(struct tm *tmp)
 {
-  return timeoff(tmp, 0);
+  return N(timeoff)(tmp, 0);
 }
 
 time_t
-timeoff(struct tm *tmp, long offset)
+N(timeoff)(struct tm *tmp, long offset)
 {
   if (tmp)
     tmp->tm_isdst = 0;
@@ -2186,13 +2186,13 @@ leapcorr(struct state const *sp, time_t t)
 }
 
 NETBSD_INSPIRED_EXTERN time_t ATTRIBUTE_PURE
-time2posix_z(struct state *sp, time_t t)
+N(time2posix_z)(struct state *sp, time_t t)
 {
   return t - leapcorr(sp, t);
 }
 
 time_t
-time2posix(time_t t)
+N(time2posix)(time_t t)
 {
   int err = lock();
   if (err) {
@@ -2202,13 +2202,13 @@ time2posix(time_t t)
   if (!lcl_is_set)
     tzset_unlocked();
   if (lclptr)
-    t = time2posix_z(lclptr, t);
+    t = N(time2posix_z)(lclptr, t);
   unlock();
   return t;
 }
 
 NETBSD_INSPIRED_EXTERN time_t ATTRIBUTE_PURE
-posix2time_z(struct state *sp, time_t t)
+N(posix2time_z)(struct state *sp, time_t t)
 {
 	time_t	x;
 	time_t	y;
@@ -2237,7 +2237,7 @@ posix2time_z(struct state *sp, time_t t)
 }
 
 time_t
-posix2time(time_t t)
+N(posix2time)(time_t t)
 {
   int err = lock();
   if (err) {
@@ -2247,7 +2247,7 @@ posix2time(time_t t)
   if (!lcl_is_set)
     tzset_unlocked();
   if (lclptr)
-    t = posix2time_z(lclptr, t);
+    t = N(posix2time_z)(lclptr, t);
   unlock();
   return t;
 }
@@ -2260,7 +2260,7 @@ posix2time(time_t t)
    which is called 'time_t' in this file.  */
 
 time_t
-time(time_t *p)
+N(time)(time_t *p)
 {
   time_t r = sys_time(0);
   if (p)

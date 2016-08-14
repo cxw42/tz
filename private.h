@@ -87,6 +87,7 @@
 */
 
 /* Avoid clashes with NetBSD by renaming NetBSD's declarations.  */
+#ifndef NO_TIME_H
 #define localtime_rz sys_localtime_rz
 #define mktime_z sys_mktime_z
 #define posix2time_z sys_posix2time_z
@@ -102,6 +103,7 @@
 #undef timezone_t
 #undef tzalloc
 #undef tzfree
+#endif //NO_TIME_H
 
 #include "sys/types.h"	/* for time_t */
 #include "stdio.h"
@@ -581,5 +583,17 @@ char *ctime_r(time_t const *, char *);
 #ifndef SECSPERREPEAT_BITS
 #define SECSPERREPEAT_BITS	34	/* ceil(log2(SECSPERREPEAT)) */
 #endif /* !defined SECSPERREPEAT_BITS */
+
+/* A macro for renaming the exports, in case you want to run these alongside
+** the system-provided functions.
+*/
+
+#if defined TZ_NAME_PREFIX
+#define TZ_PASTE_(x,y) x ## y
+#define TZ_PASTE_HELPER_(x,y) TZ_PASTE_(x,y)
+#define N(basename) TZ_PASTE_HELPER_(TZ_NAME_PREFIX, basename)
+#else
+#define N(basename) basename
+#endif
 
 #endif /* !defined PRIVATE_H */

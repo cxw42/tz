@@ -15,7 +15,7 @@ dminus(double x)
 }
 
 double ATTRIBUTE_CONST
-difftime(time_t time1, time_t time0)
+N(difftime)(time_t time1, time_t time0)
 {
 	/*
 	** If double is large enough, simply convert and subtract

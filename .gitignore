@@ -3,9 +3,12 @@
 *.a
 *.asc
 *.o
+*.obj
 *.tar.gz
 *.txt
 *~
+*.swp
+*.log
 ChangeLog
 date
 leapseconds
@@ -14,3 +17,4 @@ version.h
 yearistype
 zdump
 zic
+*.exe
