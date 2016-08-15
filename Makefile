@@ -44,13 +44,13 @@ POSIXRULES=	America/New_York
 
 # Everything gets put in subdirectories of. . .
 
-TOPDIR=		/usr/local
+TOPDIR?=		/usr/local
 
 # "Compiled" time zone information is placed in the "TZDIR" directory
 # (and subdirectories).
 # Use an absolute path name for TZDIR unless you're just testing the software.
 
-TZDIR_BASENAME=	zoneinfo
+TZDIR_BASENAME?=	zoneinfo
 TZDIR=		$(TOPDIR)/etc/$(TZDIR_BASENAME)
 
 # Types to try, as an alternative to time_t.  int64_t should be first.
@@ -340,7 +340,8 @@ GZIPFLAGS=	-9n
 #MAKE=		make
 
 cc?=		cc
-CC?=		$(cc) -DTZDIR=\"$(TZDIR)\"
+CC?=		$(cc) 
+CC+=		-DTZDIR=\"$(TZDIR)\"
 
 AR?=		ar
 

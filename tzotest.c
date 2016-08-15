@@ -4,15 +4,27 @@
 #include "tzobj.h"
 #include <stdio.h>
 
+#include <time.h>
+    // for struct tm
+
 int main(void)
 {
     time_t now = time(NULL);
-    printf("time() returns %d\n", now);
+    printf("time() returns %d; posix2time %d\n", now, tzo_posix2time(now));
+    printf("TZDIR=%s\n",TZDIR);
 
+    timezone_t eastern = tzo_tzalloc("America/New_York");
     timezone_t pacific = tzo_tzalloc("America/Los_Angeles");
+    timezone_t UTC = tzo_tzalloc("UTC");
 
-    time_t pacnow = tzo_posix2time_z(pacific, now);
-    printf("in America/Los_Angeles: %d\n", pacnow);
+    struct tm pactime, utime, etime;
+    tzo_localtime_rz(UTC, &now, &utime);
+    tzo_localtime_rz(pacific, &now, &pactime);
+    tzo_localtime_rz(eastern, &now, &etime);
+    
+    printf("UTC:     %s\n", tzo_asctime(&utime));
+    printf("Pacific: %s\n", tzo_asctime(&pactime));
+    printf("Eastern: %s\n", tzo_asctime(&etime));
     tzo_tzfree(pacific);
     return 0;
 } //main
