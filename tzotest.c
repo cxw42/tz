@@ -9,6 +9,10 @@
 #include <time.h>
     // for struct tm
 
+#define TZBASE "/c/MinGW/msys/1.0/local/etc/zoneinfo"
+#define TZPOSIX "-posix/"
+#define TZRIGHT "-leaps/"
+
 int main(void)
 {
     SYSTEMTIME wall_utc_st;    //wall clock time from Windows
@@ -34,6 +38,14 @@ int main(void)
         // right_posix?  I don't see _leapseconds_ in .../zoneinfo.
     printf("wall UTC from Windows: %d\n", wall_utc_t);
     printf("TZDIR=%s\n",TZDIR);
+
+    timezone_t utc_posix = tzo_tzalloc(TZBASE TZPOSIX "UTC");
+    timezone_t utc_right = tzo_tzalloc(TZBASE TZRIGHT "UTC");
+
+    time_t wall_in_posix = tzo_mktime_z(utc_posix, &wall_utc_tm);
+    time_t wall_in_right = tzo_mktime_z(utc_right, &wall_utc_tm);
+    printf("wall UTC posix %d\nwall UTC right %d\n", 
+            wall_in_posix, wall_in_right);
 
     timezone_t eastern = tzo_tzalloc("America/New_York");
     timezone_t pacific = tzo_tzalloc("America/Los_Angeles");
