@@ -10,6 +10,10 @@
 
 /*LINTLIBRARY*/
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 #define LOCALTIME_IMPLEMENTATION
 #include "private.h"
 
@@ -410,6 +414,9 @@ tzloadbody(char const *name, struct state *sp, bool doextend,
 	}
 	if (doaccess && access(name, R_OK) != 0)
 	  return errno;
+#ifdef DEBUG
+	printf("tzloadbody: opening %s\n", name);
+#endif
 	fid = open(name, OPEN_MODE);
 	if (fid < 0)
 	  return errno;
