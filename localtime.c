@@ -371,64 +371,32 @@ union local_storage {
   } u;
 };
 
-/* Load tz data from the file named NAME into *SP.  Read extended
-   format if DOEXTEND.  Use *LSP for temporary storage.  Return 0 on
-   success, an errno value on failure.  */
+/* Parse tz data from the first NREAD bytes of the input_buffer *BUFP into *SP.
+** Read extended format if DOEXTEND.  Use *LSP for temporary storage.  
+** Return 0 on success, an errno value on failure.  
+** The input is an unsigned char pointer rather than a union local_storage
+** pointer because this function can be called from outside libtz. 
+*/
 static int
-tzloadbody(char const *name, struct state *sp, bool doextend,
-	   union local_storage *lsp)
+N(tzload_from_buf)(unsigned char *bufp, ssize_t nread,
+		   struct state *sp, bool doextend,
+	   	   union local_storage *lsp)
 {
+	register union input_buffer *up = (union input_buffer *)bufp;
 	register int			i;
-	register int			fid;
 	register int			stored;
-	register ssize_t		nread;
-	register bool doaccess;
-	register char *fullname = lsp->fullname;
-	register union input_buffer *up = &lsp->u.u;
 	register int tzheadsize = sizeof (struct tzhead);
+
+	if (bufp==NULL) {
+		return ENOMEM;	/* well, sort of */
+	}
+
+	if (nread < tzheadsize) {
+	  return EINVAL;
+	}
 
 	sp->goback = sp->goahead = false;
 
-	if (! name) {
-		name = TZDEFAULT;
-		if (! name)
-		  return EINVAL;
-	}
-
-	if (name[0] == ':')
-		++name;
-	doaccess = name[0] == '/';
-	if (!doaccess) {
-		char const *p = TZDIR;
-		if (! p)
-		  return EINVAL;
-		if (sizeof lsp->fullname - 1 <= strlen(p) + strlen(name))
-		  return ENAMETOOLONG;
-		strcpy(fullname, p);
-		strcat(fullname, "/");
-		strcat(fullname, name);
-		/* Set doaccess if '.' (as in "../") shows up in name.  */
-		if (strchr(name, '.'))
-			doaccess = true;
-		name = fullname;
-	}
-	if (doaccess && access(name, R_OK) != 0)
-	  return errno;
-#ifdef DEBUG
-	printf("tzloadbody: opening %s\n", name);
-#endif
-	fid = open(name, OPEN_MODE);
-	if (fid < 0)
-	  return errno;
-
-	nread = read(fid, up->buf, sizeof up->buf);
-	if (nread < tzheadsize) {
-	  int err = nread < 0 ? errno : EINVAL;
-	  close(fid);
-	  return err;
-	}
-	if (close(fid) < 0)
-	  return errno;
 	for (stored = 4; stored <= 8; stored *= 2) {
 		int_fast32_t ttisstdcnt = detzcode(up->tzhead.tzh_ttisstdcnt);
 		int_fast32_t ttisgmtcnt = detzcode(up->tzhead.tzh_ttisgmtcnt);
@@ -671,10 +639,75 @@ tzloadbody(char const *name, struct state *sp, bool doextend,
 	}
 	sp->defaulttype = i;
 	return 0;
-}
+} /* tzload_from_buf */
 
 /* Load tz data from the file named NAME into *SP.  Read extended
-   format if DOEXTEND.  Return 0 on success, an errno value on failure.  */
+** format if DOEXTEND.  Use *LSP for temporary storage.  Return 0 on
+** success, an errno value on failure.  
+*/
+static int
+tzloadbody(char const *name, struct state *sp, bool doextend,
+	   union local_storage *lsp)
+{
+	register int			fid;
+	register ssize_t		nread;
+	register bool doaccess;
+	register char *fullname = lsp->fullname;
+	register union input_buffer *up = &lsp->u.u;
+	register int tzheadsize = sizeof (struct tzhead);
+
+	sp->goback = sp->goahead = false;
+
+	if (! name) {
+		name = TZDEFAULT;
+		if (! name)
+		  return EINVAL;
+	}
+
+	if (name[0] == ':')
+		++name;
+	doaccess = name[0] == '/';
+	if (!doaccess) {
+		char const *p = TZDIR;
+		if (! p)
+		  return EINVAL;
+		if (sizeof lsp->fullname - 1 <= strlen(p) + strlen(name))
+		  return ENAMETOOLONG;
+		strcpy(fullname, p);
+		strcat(fullname, "/");
+		strcat(fullname, name);
+		/* Set doaccess if '.' (as in "../") shows up in name.  */
+		if (strchr(name, '.'))
+			doaccess = true;
+		name = fullname;
+	}
+	if (doaccess && access(name, R_OK) != 0)
+	  return errno;
+#ifdef DEBUG
+	printf("tzloadbody: opening %s\n", name);
+#endif
+	fid = open(name, OPEN_MODE);
+	if (fid < 0)
+	  return errno;
+
+	nread = read(fid, up->buf, sizeof up->buf);
+	if (nread < tzheadsize) {
+	  int err = nread < 0 ? errno : EINVAL;
+	  close(fid);
+	  return err;
+	}
+	if (close(fid) < 0)
+	  return errno;
+
+	/* tzload_from_buf fills in _sp_ based on what we read */
+	return N(tzload_from_buf)((unsigned char *)up, nread, 
+				  sp, doextend, lsp);
+
+} /* tzloadbody */
+
+/* Load tz data from the file named NAME into *SP.  Read extended
+** format if DOEXTEND.  Return 0 on success, an errno value on failure.  
+*/
 static int
 tzload(char const *name, struct state *sp, bool doextend)
 {
